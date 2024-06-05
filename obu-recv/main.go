@@ -78,10 +78,14 @@ func (dr *dataReceiver) produceData() {
 }
 
 func (dr *dataReceiver) recvLoop() {
+	defer dr.conn.Close()
 	for {
 		var obuData types.OBUData
 		if err := dr.conn.ReadJSON(&obuData); err != nil {
-			fmt.Println(err)
+			fmt.Printf("%+v\n", err)
+			if websocket.IsCloseError(err, websocket.CloseAbnormalClosure) {
+				break
+			}
 			continue
 		}
 		dr.msg <- obuData
@@ -92,6 +96,7 @@ var topic = "obuData"
 
 func main() {
 	dataReceiver := newDataReceiver()
+	defer dataReceiver.producer.Flush(15 * 1000)
 	defer dataReceiver.producer.Close()
 
 	http.HandleFunc("/obu", dataReceiver.obuHandler)
