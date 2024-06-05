@@ -25,7 +25,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer conn.Close()
+	// defer conn.Close()
 
 	for {
 		for i := 0; i < rand.Intn(100); i++ {

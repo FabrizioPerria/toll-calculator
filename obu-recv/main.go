@@ -1,22 +1,44 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
+	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/fabrizioperria/toll/shared/types"
 	"github.com/gorilla/websocket"
 )
 
 type dataReceiver struct {
-	msg  chan types.OBUData
-	conn *websocket.Conn
+	msg      chan types.OBUData
+	producer *kafka.Producer
+	conn     *websocket.Conn
 }
 
 func newDataReceiver() *dataReceiver {
+	producer, err := kafka.NewProducer(&kafka.ConfigMap{"bootstrap.servers": "localhost"})
+	if err != nil {
+		panic(err)
+	}
+
+	go func() {
+		for e := range producer.Events() {
+			switch ev := e.(type) {
+			case *kafka.Message:
+				if ev.TopicPartition.Error != nil {
+					fmt.Printf("Delivery failed: %v\n", ev.TopicPartition)
+				} else {
+					fmt.Printf("Delivered message to %v\n", ev.TopicPartition)
+				}
+			}
+		}
+	}()
+
 	return &dataReceiver{
-		msg:  make(chan types.OBUData, 100),
-		conn: nil,
+		msg:      make(chan types.OBUData, 100),
+		producer: producer,
+		conn:     nil,
 	}
 }
 
@@ -29,22 +51,33 @@ func (dr *dataReceiver) obuHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
+	if dr.conn != nil {
+		dr.conn.Close()
+	}
 	dr.conn = conn
 
 	go dr.recvLoop()
+	go dr.produceData()
+}
 
-	go func() {
-		for {
-			select {
-			case obuData := <-dr.msg:
-				fmt.Println("Received data from OBU:", obuData)
-			}
+func (dr *dataReceiver) produceData() {
+	for obuData := range dr.msg {
+		marshalData, err := json.Marshal(obuData)
+		if err != nil {
+			return
 		}
-	}()
+		err = dr.producer.Produce(&kafka.Message{
+			TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
+			Value:          marshalData,
+		}, nil)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+	}
 }
 
 func (dr *dataReceiver) recvLoop() {
-	fmt.Println("A new client connected!")
 	for {
 		var obuData types.OBUData
 		if err := dr.conn.ReadJSON(&obuData); err != nil {
@@ -55,9 +88,12 @@ func (dr *dataReceiver) recvLoop() {
 	}
 }
 
+var topic = "obuData"
+
 func main() {
 	dataReceiver := newDataReceiver()
-	defer dataReceiver.conn.Close()
+	defer dataReceiver.producer.Close()
+
 	http.HandleFunc("/obu", dataReceiver.obuHandler)
 	http.ListenAndServe(":8080", nil)
 }
