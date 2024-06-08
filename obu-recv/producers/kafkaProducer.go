@@ -2,7 +2,7 @@ package producers
 
 import (
 	"encoding/json"
-	"fmt"
+	"log"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/fabrizioperria/toll/shared/types"
@@ -14,7 +14,7 @@ type KafkaProducer struct {
 
 var topic = "obuData"
 
-func NewKafkaProducer() (*KafkaProducer, error) {
+func NewKafkaProducer() (DataProducer, error) {
 	producer, err := kafka.NewProducer(&kafka.ConfigMap{"bootstrap.servers": "localhost"})
 	if err != nil {
 		return nil, err
@@ -25,9 +25,7 @@ func NewKafkaProducer() (*KafkaProducer, error) {
 			switch ev := e.(type) {
 			case *kafka.Message:
 				if ev.TopicPartition.Error != nil {
-					fmt.Printf("Delivery failed: %v\n", ev.TopicPartition)
-				} else {
-					fmt.Printf("Delivered message to %v\n", ev.TopicPartition)
+					log.Printf("Delivery failed: %v\n", ev.TopicPartition)
 				}
 			}
 		}

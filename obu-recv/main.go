@@ -20,6 +20,7 @@ func newDataReceiver() *dataReceiver {
 	if err != nil {
 		panic(err)
 	}
+	producer = producers.NewLogMiddleware(producer)
 	return &dataReceiver{
 		msg:      make(chan types.OBUData, 100),
 		producer: producer,
