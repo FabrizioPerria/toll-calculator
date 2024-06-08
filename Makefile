@@ -1,8 +1,16 @@
+containers: clean
+	@docker-compose up -d
+
+clean:
+	@docker-compose down
+
 obu-send:
-	@go run obu-send/main.go
+	@go build -o bin/obu-send ./obu-send
+	@./bin/obu-send
 
 obu-recv:
-	@go run obu-recv/main.go
+	@go build -o bin/obu-recv ./obu-recv
+	@./bin/obu-recv
 
 .PHONY: obu-send obu-recv 
 
