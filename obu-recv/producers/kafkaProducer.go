@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
+	constants "github.com/fabrizioperria/toll/shared"
 	"github.com/fabrizioperria/toll/shared/types"
 )
 
@@ -12,10 +13,10 @@ type KafkaProducer struct {
 	producer *kafka.Producer
 }
 
-var topic = "obuData"
-
 func NewKafkaProducer() (DataProducer, error) {
-	producer, err := kafka.NewProducer(&kafka.ConfigMap{"bootstrap.servers": "localhost"})
+	producer, err := kafka.NewProducer(&kafka.ConfigMap{
+		"bootstrap.servers": "localhost",
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +41,15 @@ func (kp *KafkaProducer) Produce(obuData types.OBUData) error {
 		return err
 	}
 	return kp.producer.Produce(&kafka.Message{
-		TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
+		TopicPartition: kafka.TopicPartition{Topic: &constants.KafkaObuDataTopic, Partition: kafka.PartitionAny},
 		Value:          marshalData,
 	}, nil)
+}
+
+func (kp *KafkaProducer) Flush() int {
+	return kp.producer.Flush(15 * 1000)
+}
+
+func (kp *KafkaProducer) Close() {
+	kp.producer.Close()
 }

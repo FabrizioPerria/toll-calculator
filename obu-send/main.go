@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"math/rand"
 	"time"
 
@@ -20,17 +21,30 @@ func generateOBU() types.OBUData {
 	}
 }
 
-func main() {
-	conn, _, err := websocket.DefaultDialer.Dial("ws://localhost:8080/obu", nil)
-	if err != nil {
-		panic(err)
+func Connect() (*websocket.Conn, error) {
+	var conn *websocket.Conn
+	var err error
+	for {
+		conn, _, err = websocket.DefaultDialer.Dial("ws://localhost:8080/obu", nil)
+		time.Sleep(1 * time.Second)
+		if err == nil && conn != nil {
+			break
+		}
 	}
-	// defer conn.Close()
+	return conn, nil
+}
+
+func main() {
+	conn, _ := Connect()
+	defer conn.Close()
 
 	for {
 		for i := 0; i < rand.Intn(100); i++ {
 			if err := conn.WriteJSON(generateOBU()); err != nil {
-				panic(err)
+				log.Printf("Broken Pipe\n")
+				// reconnect
+				conn, _ = Connect()
+				defer conn.Close()
 			}
 		}
 		time.Sleep(1 * time.Second)

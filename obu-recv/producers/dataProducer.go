@@ -4,4 +4,6 @@ import "github.com/fabrizioperria/toll/shared/types"
 
 type DataProducer interface {
 	Produce(types.OBUData) error
+	Flush() int
+	Close()
 }

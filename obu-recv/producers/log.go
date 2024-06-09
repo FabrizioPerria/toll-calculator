@@ -21,3 +21,17 @@ func (lm *LogMiddleware) Produce(obuData types.OBUData) error {
 	}(time.Now())
 	return lm.next.Produce(obuData)
 }
+
+func (lm *LogMiddleware) Flush() int {
+	if lm.next == nil {
+		return 0
+	}
+	return lm.next.Flush()
+}
+
+func (lm *LogMiddleware) Close() {
+	if lm.next == nil {
+		return
+	}
+	lm.next.Close()
+}

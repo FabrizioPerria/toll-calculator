@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/fabrizioperria/toll/obu-recv/producers"
@@ -12,7 +13,6 @@ import (
 type dataReceiver struct {
 	msg      chan types.OBUData
 	producer producers.DataProducer
-	conn     *websocket.Conn
 }
 
 func newDataReceiver() *dataReceiver {
@@ -24,25 +24,22 @@ func newDataReceiver() *dataReceiver {
 	return &dataReceiver{
 		msg:      make(chan types.OBUData, 100),
 		producer: producer,
-		conn:     nil,
 	}
 }
 
 func (dr *dataReceiver) obuHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("New connection")
 	upgrader := websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
 	}
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		panic(err)
+		log.Printf("Error while upgrading connection: %v", err)
+		return
 	}
-	if dr.conn != nil {
-		dr.conn.Close()
-	}
-	dr.conn = conn
 
-	go dr.recvLoop()
+	go dr.recvLoop(conn)
 	go dr.produceData()
 }
 
@@ -54,16 +51,13 @@ func (dr *dataReceiver) produceData() {
 	}
 }
 
-func (dr *dataReceiver) recvLoop() {
-	defer dr.conn.Close()
+func (dr *dataReceiver) recvLoop(conn *websocket.Conn) {
+	defer conn.Close()
 	for {
 		var obuData types.OBUData
-		if err := dr.conn.ReadJSON(&obuData); err != nil {
-			fmt.Printf("%+v\n", err)
-			if websocket.IsCloseError(err, websocket.CloseAbnormalClosure) {
-				break
-			}
-			continue
+		if err := conn.ReadJSON(&obuData); err != nil {
+			fmt.Printf("THIS: %+v\n", err)
+			break
 		}
 		dr.msg <- obuData
 	}
@@ -71,8 +65,8 @@ func (dr *dataReceiver) recvLoop() {
 
 func main() {
 	dataReceiver := newDataReceiver()
-	// defer dataReceiver.producer.Flush(15 * 1000)
-	// defer dataReceiver.producer.Close()
+	defer dataReceiver.producer.Flush()
+	defer dataReceiver.producer.Close()
 
 	http.HandleFunc("/obu", dataReceiver.obuHandler)
 	http.ListenAndServe(":8080", nil)
