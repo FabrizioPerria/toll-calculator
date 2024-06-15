@@ -1,0 +1,6 @@
+POST http://localhost:8081/aggregate
+{
+  "value": 1,
+  "timestamp": 123456789,
+  "obuId": 123456
+}

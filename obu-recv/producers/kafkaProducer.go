@@ -32,7 +32,7 @@ func NewKafkaProducer() (DataProducer, error) {
 		}
 	}()
 
-	return &KafkaProducer{producer: producer}, nil
+	return NewLogMiddleware(&KafkaProducer{producer: producer}), nil
 }
 
 func (kp *KafkaProducer) Produce(obuData types.OBUData) error {

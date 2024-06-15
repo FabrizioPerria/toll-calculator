@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -20,7 +21,6 @@ func newDataReceiver() *dataReceiver {
 	if err != nil {
 		panic(err)
 	}
-	producer = producers.NewLogMiddleware(producer)
 	return &dataReceiver{
 		msg:      make(chan types.OBUData, 100),
 		producer: producer,
@@ -28,7 +28,6 @@ func newDataReceiver() *dataReceiver {
 }
 
 func (dr *dataReceiver) obuHandler(w http.ResponseWriter, r *http.Request) {
-	log.Printf("New connection")
 	upgrader := websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
@@ -56,7 +55,7 @@ func (dr *dataReceiver) recvLoop(conn *websocket.Conn) {
 	for {
 		var obuData types.OBUData
 		if err := conn.ReadJSON(&obuData); err != nil {
-			fmt.Printf("THIS: %+v\n", err)
+			fmt.Printf("%+v\n", err)
 			break
 		}
 		dr.msg <- obuData
@@ -64,10 +63,11 @@ func (dr *dataReceiver) recvLoop(conn *websocket.Conn) {
 }
 
 func main() {
+	listenAddr := flag.String("listen-addr", ":8080", "server listen address")
 	dataReceiver := newDataReceiver()
 	defer dataReceiver.producer.Flush()
 	defer dataReceiver.producer.Close()
 
 	http.HandleFunc("/obu", dataReceiver.obuHandler)
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(*listenAddr, nil)
 }

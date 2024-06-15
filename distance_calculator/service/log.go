@@ -1,8 +1,6 @@
 package service
 
 import (
-	"log"
-
 	"github.com/fabrizioperria/toll/shared/types"
 )
 
@@ -15,9 +13,9 @@ func NewLogServiceMiddleware(next Calculator) *LogServiceMiddleware {
 }
 
 func (lm *LogServiceMiddleware) Distance(obuData types.OBUData) (distance float64, err error) {
-	defer func() {
-		log.Println("CALCULATED: ", distance)
-	}()
+	// defer func() {
+	// log.Println("CALCULATED: ", distance)
+	// }()
 	distance, err = lm.next.Distance(obuData)
 	return
 }

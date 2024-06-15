@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"math/rand"
 	"time"
@@ -18,14 +19,15 @@ func generateOBU() types.OBUData {
 		OBUID:     obuID,
 		Latitude:  latitude,
 		Longitude: longitude,
+		Timestamp: time.Now().Unix(),
 	}
 }
 
-func Connect() (*websocket.Conn, error) {
+func Connect(url *string) (*websocket.Conn, error) {
 	var conn *websocket.Conn
 	var err error
 	for {
-		conn, _, err = websocket.DefaultDialer.Dial("ws://localhost:8080/obu", nil)
+		conn, _, err = websocket.DefaultDialer.Dial(*url, nil)
 		time.Sleep(1 * time.Second)
 		if err == nil && conn != nil {
 			break
@@ -35,7 +37,8 @@ func Connect() (*websocket.Conn, error) {
 }
 
 func main() {
-	conn, _ := Connect()
+	url := flag.String("url", "ws://localhost:8080/obu", "url to connect to")
+	conn, _ := Connect(url)
 	defer conn.Close()
 
 	for {
@@ -43,11 +46,11 @@ func main() {
 			if err := conn.WriteJSON(generateOBU()); err != nil {
 				log.Printf("Broken Pipe\n")
 				// reconnect
-				conn, _ = Connect()
-				defer conn.Close()
+				conn, _ = Connect(url)
 			}
 		}
-		time.Sleep(1 * time.Second)
+		sleepTime := time.Duration(rand.Intn(10000))
+		time.Sleep(sleepTime * time.Millisecond)
 	}
 }
 

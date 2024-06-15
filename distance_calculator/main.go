@@ -1,23 +1,24 @@
 package main
 
 import (
+	"flag"
 	"log"
 
 	"github.com/fabrizioperria/toll/distance_calculator/consumers"
 )
 
 func main() {
-	kafkaConsumer, err := consumers.NewKafkaConsumer()
+	server := flag.String("server", "localhost", "Kafka server")
+	var kafkaConsumer consumers.DataConsumer
+	kafkaConsumer, err := consumers.NewKafkaConsumer(*server)
 	if err != nil {
 		panic(err)
 	}
 
-	kafkaConsumer = consumers.NewLogMiddleware(kafkaConsumer)
-
 	for {
 		_, err := kafkaConsumer.Consume()
 		if err != nil {
-			log.Printf("Error consuming message %v\n", err)
+			log.Printf("Error consuming message\n")
 		}
 	}
 }

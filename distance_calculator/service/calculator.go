@@ -13,7 +13,7 @@ type Calculator interface {
 type CalculatorService struct{}
 
 func NewCalculatorService() Calculator {
-	return &CalculatorService{}
+	return NewLogServiceMiddleware(&CalculatorService{})
 }
 
 var lastObuData map[int]types.OBUData = make(map[int]types.OBUData, 50)

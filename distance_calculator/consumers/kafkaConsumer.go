@@ -2,8 +2,10 @@ package consumers
 
 import (
 	"encoding/json"
+	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
+	"github.com/fabrizioperria/toll/aggregator/client"
 	"github.com/fabrizioperria/toll/distance_calculator/service"
 	constants "github.com/fabrizioperria/toll/shared"
 	"github.com/fabrizioperria/toll/shared/types"
@@ -12,11 +14,12 @@ import (
 type KafkaConsumer struct {
 	consumer *kafka.Consumer
 	service.Calculator
+	client *client.HTTPAggregatorClient
 }
 
-func NewKafkaConsumer() (DataConsumer, error) {
+func NewKafkaConsumer(server string) (DataConsumer, error) {
 	kafkaConsumer, err := kafka.NewConsumer(&kafka.ConfigMap{
-		"bootstrap.servers": "localhost",
+		"bootstrap.servers": server,
 		"group.id":          1,
 		"auto.offset.reset": "earliest",
 	})
@@ -25,27 +28,32 @@ func NewKafkaConsumer() (DataConsumer, error) {
 	}
 	kafkaConsumer.SubscribeTopics([]string{constants.KafkaObuDataTopic}, nil)
 
-	var srvc service.Calculator
-	srvc = service.NewCalculatorService()
-	srvc = service.NewLogServiceMiddleware(srvc)
-	return &KafkaConsumer{
+	return NewLogConsumerMiddleware(&KafkaConsumer{
 		consumer:   kafkaConsumer,
-		Calculator: srvc,
-	}, nil
+		Calculator: service.NewCalculatorService(),
+		client:     client.NewHTTPAggregatorClient(constants.AggregatorHttpClient),
+	}), nil
 }
 
 func (kc *KafkaConsumer) Consume() (types.OBUData, error) {
 	message, err := kc.consumer.ReadMessage(-1)
 	if err != nil {
-		return types.OBUData{}, err
+		return types.OBUData{}, nil
 	}
 
 	obuData := types.OBUData{}
 	if err = json.Unmarshal(message.Value, &obuData); err != nil {
 		return types.OBUData{}, err
 	}
-	if _, err := kc.Distance(obuData); err != nil {
+	rawDistance, err := kc.Distance(obuData)
+	if err != nil {
 		return obuData, err
 	}
+	distance := types.Distance{
+		OBUID:     obuData.OBUID,
+		Value:     rawDistance,
+		Timestamp: time.Now().Unix(),
+	}
+	kc.client.Aggregate(distance)
 	return obuData, nil
 }
