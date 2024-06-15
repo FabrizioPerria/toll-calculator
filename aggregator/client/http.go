@@ -13,7 +13,7 @@ type HTTPAggregatorClient struct {
 	endpoint string
 }
 
-func NewHTTPAggregatorClient(endpoint string) *HTTPAggregatorClient {
+func NewHTTPAggregatorClient(endpoint string) AggregatorClient {
 	return &HTTPAggregatorClient{endpoint: endpoint}
 }
 

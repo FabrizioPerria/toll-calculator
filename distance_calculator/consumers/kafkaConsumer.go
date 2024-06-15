@@ -14,7 +14,7 @@ import (
 type KafkaConsumer struct {
 	consumer *kafka.Consumer
 	service.Calculator
-	client *client.HTTPAggregatorClient
+	client client.AggregatorClient
 }
 
 func NewKafkaConsumer(server string) (DataConsumer, error) {
@@ -31,7 +31,8 @@ func NewKafkaConsumer(server string) (DataConsumer, error) {
 	return NewLogConsumerMiddleware(&KafkaConsumer{
 		consumer:   kafkaConsumer,
 		Calculator: service.NewCalculatorService(),
-		client:     client.NewHTTPAggregatorClient(constants.AggregatorHttpClient),
+		// client:     client.NewHTTPAggregatorClient(constants.AggregatorHttpClient),
+		client: client.NewGRPCAggregatorClient(constants.AggregatorGrpcClient),
 	}), nil
 }
 
