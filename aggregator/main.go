@@ -13,14 +13,5 @@ func main() {
 	invoiceAggregator := aggregator.NewInvoiceAggregator()
 
 	go transport.SetupGRPCTransport(*grpcListenAddr, invoiceAggregator)
-
-	// time.Sleep(1 * time.Second)
-	// cl := client.NewGRPCAggregatorClient("localhost:8082")
-	// cl.Aggregate(types.Distance{
-	// 	OBUID:     12345,
-	// 	Value:     100,
-	// 	Timestamp: time.Now().Unix(),
-	// })
-
 	transport.SetupHTTPTransport(*httpListenAddr, invoiceAggregator)
 }

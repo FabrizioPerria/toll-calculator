@@ -28,11 +28,13 @@ func NewKafkaConsumer(server string) (DataConsumer, error) {
 	}
 	kafkaConsumer.SubscribeTopics([]string{constants.KafkaObuDataTopic}, nil)
 
+	// httpClient := client.NewHTTPAggregatorClient(constants.AggregatorHttpClient)
+	grpcClient := client.NewGRPCAggregatorClient(constants.AggregatorGrpcClient)
+
 	return NewLogConsumerMiddleware(&KafkaConsumer{
 		consumer:   kafkaConsumer,
 		Calculator: service.NewCalculatorService(),
-		// client:     client.NewHTTPAggregatorClient(constants.AggregatorHttpClient),
-		client: client.NewGRPCAggregatorClient(constants.AggregatorGrpcClient),
+		client:     grpcClient,
 	}), nil
 }
 

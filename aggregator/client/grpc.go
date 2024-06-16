@@ -10,7 +10,7 @@ import (
 )
 
 type GRPCAggregatorClient struct {
-	client   *grpc.ClientConn
+	client   pb.AggregatorServiceClient
 	endpoint string
 }
 
@@ -19,12 +19,14 @@ func NewGRPCAggregatorClient(endpoint string) AggregatorClient {
 	if err != nil {
 		panic(err)
 	}
-	return &GRPCAggregatorClient{endpoint: endpoint, client: conn}
+	return &GRPCAggregatorClient{
+		endpoint: endpoint,
+		client:   pb.NewAggregatorServiceClient(conn),
+	}
 }
 
 func (c *GRPCAggregatorClient) Aggregate(distance types.Distance) error {
-	client := pb.NewAggregatorServiceClient(c.client)
-	_, err := client.Aggregate(context.Background(), &pb.AggregateRequest{
+	_, err := c.client.Aggregate(context.Background(), &pb.AggregateRequest{
 		ObuId:     int32(distance.OBUID),
 		Value:     distance.Value,
 		Timestamp: distance.Timestamp,
