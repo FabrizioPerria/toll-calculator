@@ -16,12 +16,15 @@ func generateOBU() types.OBUData {
 	longitude := rand.Float64()*360 - 180
 	obuID := strconv.Itoa(rand.Intn(20))
 
-	return types.OBUData{
+	obuData := types.OBUData{
 		ObuId:     obuID,
 		Latitude:  latitude,
 		Longitude: longitude,
 		Timestamp: time.Now().Unix(),
 	}
+
+	log.Printf("Generated OBU data: %+v\n", obuData)
+	return obuData
 }
 
 func Connect(url *string) (*websocket.Conn, error) {
@@ -51,7 +54,7 @@ func main() {
 				conn, _ = Connect(url)
 			}
 		}
-		sleepTime := time.Duration(rand.Intn(10000))
+		sleepTime := time.Duration(rand.Intn(1000))
 		time.Sleep(sleepTime * time.Millisecond)
 	}
 }

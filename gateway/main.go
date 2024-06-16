@@ -5,6 +5,7 @@ import (
 	"flag"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/fabrizioperria/toll/aggregator/client"
 	constants "github.com/fabrizioperria/toll/shared"
@@ -28,8 +29,6 @@ type invoiceHandler struct {
 
 func (h *invoiceHandler) handleGetInvoice(w http.ResponseWriter, r *http.Request) error {
 	obuId := r.URL.Query().Get("obu_id")
-	log.Printf("Received request for invoice for OBU ID: %s", obuId)
-
 	invoice, err := h.client.Invoice(obuId)
 	if err != nil {
 		return err
@@ -47,6 +46,10 @@ type apiFunc func(w http.ResponseWriter, r *http.Request) error
 
 func serveHTTP(fn apiFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		defer func(start time.Time) {
+			log.Printf("Request %s processed in %v", r.RequestURI, time.Since(start))
+		}(time.Now())
+
 		if err := fn(w, r); err != nil {
 			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
