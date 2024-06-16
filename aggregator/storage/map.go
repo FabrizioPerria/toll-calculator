@@ -7,24 +7,24 @@ import (
 )
 
 type MapStorage struct {
-	storage map[int]float64
+	storage map[string]float64
 }
 
 func NewMapStorage() Storer {
 	return &MapStorage{
-		storage: make(map[int]float64),
+		storage: make(map[string]float64),
 	}
 }
 
 func (m *MapStorage) Store(distance types.Distance) error {
-	m.storage[distance.OBUID] += distance.Value
+	m.storage[distance.ObuId] += distance.Value
 	return nil
 }
 
-func (m *MapStorage) Get(obuID int) (float64, error) {
+func (m *MapStorage) Get(obuID string) (float64, error) {
 	value, ok := m.storage[obuID]
 	if !ok {
-		return -1, fmt.Errorf("obuID %d not found", obuID)
+		return -1, fmt.Errorf("obuID %s not found", obuID)
 	}
 	return value, nil
 }

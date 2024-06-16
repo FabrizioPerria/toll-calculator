@@ -27,22 +27,22 @@ func NewGRPCAggregatorClient(endpoint string) AggregatorClient {
 
 func (c *GRPCAggregatorClient) Aggregate(distance types.Distance) error {
 	_, err := c.client.Aggregate(context.Background(), &pb.AggregateRequest{
-		ObuId:     int32(distance.OBUID),
+		ObuId:     distance.ObuId,
 		Value:     distance.Value,
 		Timestamp: distance.Timestamp,
 	})
 	return err
 }
 
-func (c *GRPCAggregatorClient) Invoice(obuID int) (types.Invoice, error) {
+func (c *GRPCAggregatorClient) Invoice(obuID string) (types.Invoice, error) {
 	inv, err := c.client.Invoice(context.Background(), &pb.InvoiceRequest{
-		ObuId: int32(obuID),
+		ObuId: obuID,
 	})
 	if err != nil {
 		return types.Invoice{}, err
 	}
 	return types.Invoice{
-		ObuID:     int(inv.ObuId),
+		ObuId:     inv.ObuId,
 		Amount:    inv.Amount,
 		Distance:  inv.Distance,
 		Timestamp: inv.Timestamp,

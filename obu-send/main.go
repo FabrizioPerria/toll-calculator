@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log"
 	"math/rand"
+	"strconv"
 	"time"
 
 	"github.com/fabrizioperria/toll/shared/types"
@@ -13,10 +14,10 @@ import (
 func generateOBU() types.OBUData {
 	latitude := rand.Float64()*180 - 90
 	longitude := rand.Float64()*360 - 180
-	obuID := rand.Intn(20)
+	obuID := strconv.Itoa(rand.Intn(20))
 
 	return types.OBUData{
-		OBUID:     obuID,
+		ObuId:     obuID,
 		Latitude:  latitude,
 		Longitude: longitude,
 		Timestamp: time.Now().Unix(),

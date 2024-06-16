@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/fabrizioperria/toll/shared/types"
 )
@@ -38,9 +37,8 @@ func (c *HTTPAggregatorClient) Aggregate(distance types.Distance) error {
 	return nil
 }
 
-func (c *HTTPAggregatorClient) Invoice(obuID int) (types.Invoice, error) {
-	id := strconv.Itoa(obuID)
-	req, err := http.NewRequest("GET", c.endpoint+"/invoice?obu_id="+id, nil)
+func (c *HTTPAggregatorClient) Invoice(obuID string) (types.Invoice, error) {
+	req, err := http.NewRequest("GET", c.endpoint+"/invoice?obu_id="+obuID, nil)
 	if err != nil {
 		return types.Invoice{}, err
 	}

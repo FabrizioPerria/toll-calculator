@@ -5,7 +5,6 @@ import (
 	"flag"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/fabrizioperria/toll/aggregator/client"
 	constants "github.com/fabrizioperria/toll/shared"
@@ -28,11 +27,9 @@ type invoiceHandler struct {
 }
 
 func (h *invoiceHandler) handleGetInvoice(w http.ResponseWriter, r *http.Request) error {
-	obuId, err := strconv.Atoi(r.URL.Query().Get("obu_id"))
-	log.Printf("Received request for invoice for OBU ID: %d", obuId)
-	if err != nil {
-		return err
-	}
+	obuId := r.URL.Query().Get("obu_id")
+	log.Printf("Received request for invoice for OBU ID: %s", obuId)
+
 	invoice, err := h.client.Invoice(obuId)
 	if err != nil {
 		return err

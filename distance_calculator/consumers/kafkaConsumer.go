@@ -2,6 +2,7 @@ package consumers
 
 import (
 	"encoding/json"
+	"log"
 	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
@@ -46,6 +47,7 @@ func (kc *KafkaConsumer) Consume() (types.OBUData, error) {
 
 	obuData := types.OBUData{}
 	if err = json.Unmarshal(message.Value, &obuData); err != nil {
+		log.Printf("Error unmarshalling message: %v\n", err)
 		return types.OBUData{}, err
 	}
 	rawDistance, err := kc.Distance(obuData)
@@ -53,7 +55,7 @@ func (kc *KafkaConsumer) Consume() (types.OBUData, error) {
 		return obuData, err
 	}
 	distance := types.Distance{
-		OBUID:     obuData.OBUID,
+		ObuId:     obuData.ObuId,
 		Value:     rawDistance,
 		Timestamp: time.Now().Unix(),
 	}
