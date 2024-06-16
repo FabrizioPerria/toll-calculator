@@ -63,7 +63,8 @@ func (dr *dataReceiver) recvLoop(conn *websocket.Conn) {
 }
 
 func main() {
-	listenAddr := flag.String("listen-addr", ":8080", "server listen address")
+	listenAddr := flag.String("listen-addr", ":8084", "server listen address")
+	flag.Parse()
 	dataReceiver := newDataReceiver()
 	defer dataReceiver.producer.Flush()
 	defer dataReceiver.producer.Close()

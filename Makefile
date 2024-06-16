@@ -3,17 +3,17 @@ GO_BUILD = go build -v
 BIN_DIR = $(CURDIR)/bin
 RM = rm -rf
 
+stop-air: 
+	@sudo killall main
+	@sudo killall air
 
 containers: clean
 	@$(DOCKER_COMPOSE) up -d
 
-clean:
+clean: stop-air
 	@$(DOCKER_COMPOSE) down
 	@$(RM) $(BIN_DIR)
 
-stop-air: clean
-	@sudo killall main
-	@sudo killall air
 
 obu-send:
 	@$(GO_BUILD) -o $(BIN_DIR)/obu-send ./obu-send
@@ -31,8 +31,12 @@ aggregator:
 	@$(GO_BUILD) -o $(BIN_DIR)/aggregator ./aggregator
 	@-$(BIN_DIR)/aggregator
 
+gateway:
+	@$(GO_BUILD) -o $(BIN_DIR)/gateway ./gateway
+	@$(BIN_DIR)/gateway
+
 proto:
-	@protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative shared/types/pb/types.proto
+	@protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative shared/types/pb/*.proto
 
 
-.PHONY: obu-send obu-recv distance-calculator aggregator
+.PHONY: obu-send obu-recv distance-calculator aggregator proto gateway

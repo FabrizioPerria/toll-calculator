@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/fabrizioperria/toll/shared/types"
 )
@@ -35,4 +36,27 @@ func (c *HTTPAggregatorClient) Aggregate(distance types.Distance) error {
 		return fmt.Errorf("unexpected status code: %d", response.StatusCode)
 	}
 	return nil
+}
+
+func (c *HTTPAggregatorClient) Invoice(obuID int) (types.Invoice, error) {
+	id := strconv.Itoa(obuID)
+	req, err := http.NewRequest("GET", c.endpoint+"/invoice?obu_id="+id, nil)
+	if err != nil {
+		return types.Invoice{}, err
+	}
+	response, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return types.Invoice{}, err
+	}
+
+	if response.StatusCode != http.StatusOK {
+		return types.Invoice{}, fmt.Errorf("unexpected status code: %d", response.StatusCode)
+	}
+
+	var invoice types.Invoice
+	err = json.NewDecoder(response.Body).Decode(&invoice)
+	if err != nil {
+		return types.Invoice{}, err
+	}
+	return invoice, nil
 }

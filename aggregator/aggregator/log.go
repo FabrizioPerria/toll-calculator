@@ -21,7 +21,7 @@ func (l *AggregatorLogMiddleware) Aggregate(distance types.Distance) error {
 	return l.next.Aggregate(distance)
 }
 
-func (l *AggregatorLogMiddleware) GetInvoice(obuID string) (Invoice, error) {
+func (l *AggregatorLogMiddleware) GetInvoice(obuID string) (types.Invoice, error) {
 	log.Printf("INVOICE: %+v\n", obuID)
 	return l.next.GetInvoice(obuID)
 }

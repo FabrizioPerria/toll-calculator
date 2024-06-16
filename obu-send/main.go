@@ -37,7 +37,8 @@ func Connect(url *string) (*websocket.Conn, error) {
 }
 
 func main() {
-	url := flag.String("url", "ws://localhost:8080/obu", "url to connect to")
+	url := flag.String("url", "ws://localhost:8084/obu", "url to connect to")
+	flag.Parse()
 	conn, _ := Connect(url)
 	defer conn.Close()
 

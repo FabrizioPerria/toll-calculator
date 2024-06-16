@@ -33,3 +33,18 @@ func (c *GRPCAggregatorClient) Aggregate(distance types.Distance) error {
 	})
 	return err
 }
+
+func (c *GRPCAggregatorClient) Invoice(obuID int) (types.Invoice, error) {
+	inv, err := c.client.Invoice(context.Background(), &pb.InvoiceRequest{
+		ObuId: int32(obuID),
+	})
+	if err != nil {
+		return types.Invoice{}, err
+	}
+	return types.Invoice{
+		ObuID:     int(inv.ObuId),
+		Amount:    inv.Amount,
+		Distance:  inv.Distance,
+		Timestamp: inv.Timestamp,
+	}, nil
+}

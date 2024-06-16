@@ -4,6 +4,7 @@ option go_package = "github.com/fabrizioperria/toll/shared/types/pb";
 
 service AggregatorService {
     rpc Aggregate(AggregateRequest) returns (None);
+    rpc Invoice(InvoiceRequest) returns (InvoiceResponse);
 }
 
 message None {}
@@ -12,4 +13,15 @@ message AggregateRequest{
     int32 ObuId = 1;
     double Value = 2;
     int64 Timestamp = 3;
+}
+
+message InvoiceRequest{
+    int32 ObuId = 1;
+}
+
+message InvoiceResponse{
+    int32 ObuId = 1;
+    double Amount = 2;
+    double Distance = 3;
+    int64 Timestamp = 4;
 }

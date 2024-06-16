@@ -9,6 +9,7 @@ import (
 
 func main() {
 	server := flag.String("server", "localhost", "Kafka server")
+	flag.Parse()
 	var kafkaConsumer consumers.DataConsumer
 	kafkaConsumer, err := consumers.NewKafkaConsumer(*server)
 	if err != nil {
