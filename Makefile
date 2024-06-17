@@ -4,8 +4,8 @@ BIN_DIR = $(CURDIR)/bin
 RM = rm -rf
 
 stop-air: 
-	@sudo killall main
-	@sudo killall air
+	@sudo killall main || true
+	@sudo killall air || true
 
 containers: clean
 	@$(DOCKER_COMPOSE) up -d
