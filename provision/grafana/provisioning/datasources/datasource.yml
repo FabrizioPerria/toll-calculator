@@ -16,3 +16,9 @@ datasources:
   isDefault: false
   version: 1
   editable: false
+  jsonData:
+    derivedFields:
+    - matcherRegex: "\"obu_id\":\"(\\d+)\""
+      name: Search
+      url: 'https://www.google.com/search?q=$${__value.raw}'
+      internalLink: false
