@@ -12,7 +12,8 @@ type InvoiceAggregator struct {
 }
 
 func NewInvoiceAggregator() Aggregator {
-	var agg Aggregator = &InvoiceAggregator{store: storage.NewMapStorage()}
+	// var agg Aggregator = &InvoiceAggregator{store: storage.NewMapStorage()}
+	var agg Aggregator = &InvoiceAggregator{store: storage.NewMongoStorage("mongodb://localhost:27017")}
 	agg = NewAggregatorMetricsMiddleware(agg)
 	agg = NewAggregatorLogMiddleware(agg)
 	return agg
