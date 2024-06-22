@@ -26,9 +26,9 @@ func NewAggregatorMetricsMiddleware(next Aggregator) Aggregator {
 		}),
 		requestLatencyAggregate: promauto.NewHistogram(prometheus.HistogramOpts{
 			// Namespace: "aggregate_requestLatency",
-			Name:    "aggregate_lat",
-			Help:    "Request latency in milliseconds",
-			Buckets: []float64{0.1, 0.5, 1},
+			Name: "aggregate_lat",
+			Help: "Request latency in milliseconds",
+			// Buckets: []float64{0.1, 0.5, 1},
 		}),
 		requestCounterInvoice: promauto.NewCounter(prometheus.CounterOpts{
 			// Namespace: "invoice_requestCounter",
@@ -37,9 +37,9 @@ func NewAggregatorMetricsMiddleware(next Aggregator) Aggregator {
 		}),
 		requestLatencyInvoice: promauto.NewHistogram(prometheus.HistogramOpts{
 			// Namespace: "invoice_requestLatency",
-			Name:    "invoice_lat",
-			Help:    "Request latency in milliseconds",
-			Buckets: []float64{0.1, 0.5, 1},
+			Name: "invoice_lat",
+			Help: "Request latency in milliseconds",
+			// Buckets: []float64{0.1, 0.5, 1},
 		}),
 	}
 }
@@ -47,7 +47,7 @@ func NewAggregatorMetricsMiddleware(next Aggregator) Aggregator {
 func (a *AggregatorMetricsMiddleware) Aggregate(distance types.Distance) error {
 	defer func(begin time.Time) {
 		a.requestCounterAggregate.Inc()
-		a.requestLatencyAggregate.Observe(float64(time.Since(begin).Seconds()))
+		a.requestLatencyAggregate.Observe(float64(time.Since(begin).Milliseconds()))
 	}(time.Now())
 	return a.next.Aggregate(distance)
 }
@@ -55,7 +55,7 @@ func (a *AggregatorMetricsMiddleware) Aggregate(distance types.Distance) error {
 func (a *AggregatorMetricsMiddleware) GetInvoice(obuID string) (types.Invoice, error) {
 	defer func(begin time.Time) {
 		a.requestCounterInvoice.Inc()
-		a.requestLatencyInvoice.Observe(float64(time.Since(begin).Seconds()))
+		a.requestLatencyInvoice.Observe(float64(time.Since(begin).Milliseconds()))
 	}(time.Now())
 	return a.next.GetInvoice(obuID)
 }

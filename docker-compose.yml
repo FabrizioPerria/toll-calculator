@@ -6,6 +6,8 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - toll_network
 
   broker:
     image: confluentinc/cp-kafka:7.3.0
@@ -24,21 +26,29 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_CREATE_TOPICS: 'obuData'
+    networks:
+      - toll_network
 
   loki:
     image: grafana/loki:2.9.2
+    container_name: loki
     ports:
       - "3100:3100"
     volumes:
         - ./provision/loki:/etc/loki
     command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - toll_network
 
   promtail:
     image: grafana/promtail:2.9.2
+    container_name: promtail
     volumes:
       - ~/log/toll:/var/log
       - ./provision/promtail:/etc/promtail
     command: -config.file=/etc/promtail/config.yaml
+    networks:
+      - toll_network
 
   prometheus:
     image: prom/prometheus
@@ -51,6 +61,8 @@ services:
     volumes:
       - ./provision/prometheus/config:/etc/prometheus
       - ./provision/prometheus/prom_data:/prometheus
+    networks:
+      - toll_network
 
   grafana:
     image: grafana/grafana
@@ -64,9 +76,12 @@ services:
     volumes:
       - ./provision/grafana/provisioning:/etc/grafana/provisioning
       - ./provision/grafana/dashboards:/var/lib/grafana/dashboards
+    networks:
+      - toll_network
 
   mongo1:
     image: mongo:latest
+    container_name: mongo
     command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27017"]
     ports:
       - 27017:27017
@@ -77,6 +92,13 @@ services:
       start_period: 0s
       start_interval: 1s
       retries: 30
+    networks:
+      - toll_network
 
 volumes:
   prom_data:
+
+
+networks:
+  toll_network:
+    name: toll_network

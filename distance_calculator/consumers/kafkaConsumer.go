@@ -2,12 +2,12 @@ package consumers
 
 import (
 	"encoding/json"
+	"os"
 	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/fabrizioperria/toll/aggregator/client"
 	"github.com/fabrizioperria/toll/distance_calculator/service"
-	constants "github.com/fabrizioperria/toll/shared"
 	"github.com/fabrizioperria/toll/shared/types"
 )
 
@@ -26,10 +26,10 @@ func NewKafkaConsumer(server string) (DataConsumer, error) {
 	if err != nil {
 		return nil, err
 	}
-	kafkaConsumer.SubscribeTopics([]string{constants.KafkaObuDataTopic}, nil)
+	kafkaConsumer.SubscribeTopics([]string{os.Getenv("KAFKA_TOPIC")}, nil)
 
-	// httpClient := client.NewHTTPAggregatorClient(constants.AggregatorHttpClient)
-	grpcClient := client.NewGRPCAggregatorClient(constants.AggregatorGrpcClient)
+	// httpClient := client.NewHTTPAggregatorClient(os.Getenv("AGGREGATOR_HTTP_CLIENT"))
+	grpcClient := client.NewGRPCAggregatorClient(os.Getenv("AGGREGATOR_GRPC_CLIENT"))
 
 	return NewLogConsumerMiddleware(&KafkaConsumer{
 		consumer:   kafkaConsumer,

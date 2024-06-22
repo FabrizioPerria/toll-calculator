@@ -43,7 +43,16 @@ func (l *AggregatorLogMiddleware) Aggregate(distance types.Distance) error {
 		"timestamp": distance.Timestamp,
 	}).Info("Aggregating distance")
 
-	return l.next.Aggregate(distance)
+	err := l.next.Aggregate(distance)
+	if err != nil {
+		l.logger.WithFields(logrus.Fields{
+			"obu_id":    distance.ObuId,
+			"value":     distance.Value,
+			"timestamp": distance.Timestamp,
+		}).Error("Failed to aggregate distance")
+	}
+
+	return err
 }
 
 func (l *AggregatorLogMiddleware) GetInvoice(obuID string) (types.Invoice, error) {
@@ -51,5 +60,12 @@ func (l *AggregatorLogMiddleware) GetInvoice(obuID string) (types.Invoice, error
 		"obu_id": obuID,
 	}).Info("Getting invoice")
 
-	return l.next.GetInvoice(obuID)
+	invoice, err := l.next.GetInvoice(obuID)
+	if err != nil {
+		l.logger.WithFields(logrus.Fields{
+			"obu_id": obuID,
+		}).Error("Failed to get invoice")
+	}
+
+	return invoice, err
 }

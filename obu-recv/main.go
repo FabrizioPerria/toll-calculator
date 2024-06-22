@@ -1,14 +1,15 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/fabrizioperria/toll/obu-recv/producers"
 	"github.com/fabrizioperria/toll/shared/types"
 	"github.com/gorilla/websocket"
+	"github.com/joho/godotenv"
 )
 
 type dataReceiver struct {
@@ -63,12 +64,12 @@ func (dr *dataReceiver) recvLoop(conn *websocket.Conn) {
 }
 
 func main() {
-	listenAddr := flag.String("listen-addr", ":8084", "server listen address")
-	flag.Parse()
+	godotenv.Load()
+	listenAddr := os.Getenv("RECEIVER_LISTEN_ADDR")
 	dataReceiver := newDataReceiver()
 	defer dataReceiver.producer.Flush()
 	defer dataReceiver.producer.Close()
 
 	http.HandleFunc("/obu", dataReceiver.obuHandler)
-	http.ListenAndServe(*listenAddr, nil)
+	http.ListenAndServe(listenAddr, nil)
 }

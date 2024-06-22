@@ -8,15 +8,14 @@ import (
 	"time"
 
 	"github.com/fabrizioperria/toll/aggregator/client"
-	constants "github.com/fabrizioperria/toll/shared"
 	"github.com/joho/godotenv"
 )
 
 func main() {
 	godotenv.Load()
 	listenAddr := os.Getenv("GATEWAY_ENDPOINT")
-	// httpClient := client.NewHTTPAggregatorClient(constants.AggregatorHttpClient)
-	grpcClient := client.NewGRPCAggregatorClient(constants.AggregatorGrpcClient)
+	// httpClient := client.NewHTTPAggregatorClient(os.Getenv("AGGREGATOR_HTTP_ENDPOINT"))
+	grpcClient := client.NewGRPCAggregatorClient(os.Getenv("AGGREGATOR_GRPC_ENDPOINT"))
 	h := &invoiceHandler{
 		client: grpcClient,
 	}

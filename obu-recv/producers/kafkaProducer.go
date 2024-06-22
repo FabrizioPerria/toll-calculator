@@ -2,10 +2,11 @@ package producers
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
+	"os"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
-	constants "github.com/fabrizioperria/toll/shared"
 	"github.com/fabrizioperria/toll/shared/types"
 )
 
@@ -14,8 +15,9 @@ type KafkaProducer struct {
 }
 
 func NewKafkaProducer() (DataProducer, error) {
+	kafkaServer := os.Getenv("KAFKA_SERVER")
 	producer, err := kafka.NewProducer(&kafka.ConfigMap{
-		"bootstrap.servers": "localhost",
+		"bootstrap.servers": kafkaServer,
 	})
 	if err != nil {
 		return nil, err
@@ -40,8 +42,10 @@ func (kp *KafkaProducer) Produce(obuData types.OBUData) error {
 	if err != nil {
 		return err
 	}
+	topic := os.Getenv("KAFKA_TOPIC")
+	fmt.Println("Producing to topic: ", topic)
 	return kp.producer.Produce(&kafka.Message{
-		TopicPartition: kafka.TopicPartition{Topic: &constants.KafkaObuDataTopic, Partition: kafka.PartitionAny},
+		TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
 		Value:          marshalData,
 	}, nil)
 }
