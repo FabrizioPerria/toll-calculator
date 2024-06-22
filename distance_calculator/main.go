@@ -1,17 +1,18 @@
 package main
 
 import (
-	"flag"
 	"log"
+	"os"
 
 	"github.com/fabrizioperria/toll/distance_calculator/consumers"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	server := flag.String("server", "localhost", "Kafka server")
-	flag.Parse()
+	godotenv.Load()
+	server := os.Getenv("KAFKA_SERVER")
 	var kafkaConsumer consumers.DataConsumer
-	kafkaConsumer, err := consumers.NewKafkaConsumer(*server)
+	kafkaConsumer, err := consumers.NewKafkaConsumer(server)
 	if err != nil {
 		panic(err)
 	}

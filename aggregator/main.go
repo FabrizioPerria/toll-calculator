@@ -1,18 +1,20 @@
 package main
 
 import (
-	"flag"
+	"os"
 
 	"github.com/fabrizioperria/toll/aggregator/aggregator"
 	"github.com/fabrizioperria/toll/aggregator/transport"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	httpListenAddr := flag.String("http", ":8081", "http listen address")
-	grpcListenAddr := flag.String("grpc", ":8082", "grpc listen address")
-	flag.Parse()
+	godotenv.Load()
+	httpListenAddr := os.Getenv("AGGREGATOR_HTTP_ENDPOINT")
+	grpcListenAddr := os.Getenv("AGGREGATOR_GRPC_ENDPOINT")
+
 	invoiceAggregator := aggregator.NewInvoiceAggregator()
 
-	go transport.SetupGRPCTransport(*grpcListenAddr, invoiceAggregator)
-	transport.SetupHTTPTransport(*httpListenAddr, invoiceAggregator)
+	go transport.SetupGRPCTransport(grpcListenAddr, invoiceAggregator)
+	transport.SetupHTTPTransport(httpListenAddr, invoiceAggregator)
 }

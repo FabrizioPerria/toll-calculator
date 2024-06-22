@@ -6,6 +6,7 @@ import (
 
 	"github.com/fabrizioperria/toll/aggregator/aggregator"
 	"github.com/fabrizioperria/toll/shared/types"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func SetupHTTPTransport(listenAddr string, agg aggregator.Aggregator) *http.Server {
@@ -13,6 +14,7 @@ func SetupHTTPTransport(listenAddr string, agg aggregator.Aggregator) *http.Serv
 
 	mux.HandleFunc("/aggregate", handleAggregate(agg))
 	mux.HandleFunc("/invoice", handleInvoice(agg))
+	mux.Handle("/metrics", promhttp.Handler())
 
 	if err := http.ListenAndServe(listenAddr, mux); err != nil {
 		if err == http.ErrServerClosed {

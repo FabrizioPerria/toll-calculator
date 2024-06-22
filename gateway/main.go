@@ -2,25 +2,26 @@ package main
 
 import (
 	"encoding/json"
-	"flag"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/fabrizioperria/toll/aggregator/client"
 	constants "github.com/fabrizioperria/toll/shared"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	listenAddr := flag.String("listen-addr", ":8080", "server listen address")
-	flag.Parse()
+	godotenv.Load()
+	listenAddr := os.Getenv("GATEWAY_ENDPOINT")
 	// httpClient := client.NewHTTPAggregatorClient(constants.AggregatorHttpClient)
 	grpcClient := client.NewGRPCAggregatorClient(constants.AggregatorGrpcClient)
 	h := &invoiceHandler{
 		client: grpcClient,
 	}
 	http.HandleFunc("/invoice", serveHTTP(h.handleGetInvoice))
-	http.ListenAndServe(*listenAddr, nil)
+	http.ListenAndServe(listenAddr, nil)
 }
 
 type invoiceHandler struct {

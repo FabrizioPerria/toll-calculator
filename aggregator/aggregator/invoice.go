@@ -12,9 +12,10 @@ type InvoiceAggregator struct {
 }
 
 func NewInvoiceAggregator() Aggregator {
-	return NewAggregatorLogMiddleware(&InvoiceAggregator{
-		store: storage.NewMapStorage(),
-	})
+	var agg Aggregator = &InvoiceAggregator{store: storage.NewMapStorage()}
+	agg = NewAggregatorMetricsMiddleware(agg)
+	agg = NewAggregatorLogMiddleware(agg)
+	return agg
 }
 
 func (a *InvoiceAggregator) Aggregate(distance types.Distance) error {

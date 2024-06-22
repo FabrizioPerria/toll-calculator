@@ -1,14 +1,15 @@
 package main
 
 import (
-	"flag"
 	"log"
 	"math/rand"
+	"os"
 	"strconv"
 	"time"
 
 	"github.com/fabrizioperria/toll/shared/types"
 	"github.com/gorilla/websocket"
+	"github.com/joho/godotenv"
 )
 
 func generateOBU() types.OBUData {
@@ -41,9 +42,9 @@ func Connect(url *string) (*websocket.Conn, error) {
 }
 
 func main() {
-	url := flag.String("url", "ws://localhost:8084/obu", "url to connect to")
-	flag.Parse()
-	conn, _ := Connect(url)
+	godotenv.Load()
+	url := os.Getenv("WEBSOCKET_URL")
+	conn, _ := Connect(&url)
 	defer conn.Close()
 
 	for {
@@ -51,7 +52,7 @@ func main() {
 			if err := conn.WriteJSON(generateOBU()); err != nil {
 				log.Printf("Broken Pipe\n")
 				// reconnect
-				conn, _ = Connect(url)
+				conn, _ = Connect(&url)
 			}
 		}
 		sleepTime := time.Duration(rand.Intn(1000))
