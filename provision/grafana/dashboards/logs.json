@@ -107,9 +107,9 @@
                     },
                     "disableTextWrap": false,
                     "editorMode": "builder",
-                    "expr": "process_cpu_seconds_total",
+                    "expr": "histogram_quantile(0.95, sum by(le) (rate(request_latency_aggregate_bucket[$__rate_interval])))",
                     "fullMetaSearch": false,
-                    "includeNullMetadata": true,
+                    "includeNullMetadata": false,
                     "legendFormat": "__auto",
                     "range": true,
                     "refId": "A",
@@ -164,13 +164,14 @@
         "list": []
     },
     "time": {
-        "from": "now-6h",
+        "from": "now-30m",
         "to": "now"
     },
     "timeRangeUpdatedDuringEditOrView": false,
     "timepicker": {},
     "timezone": "browser",
     "title": "New dashboard",
-    "version": 0,
+    "uid": "adpnj6l849a80b",
+    "version": 1,
     "weekStart": ""
 }

@@ -33,16 +33,11 @@ func NewMongoStorage(url string) Storer {
 func (m *MongoStorage) Store(distance types.Distance) error {
 	opts := options.Update().SetUpsert(true)
 	_, err := m.collection.UpdateOne(context.Background(), bson.M{"obu_id": distance.ObuId}, bson.M{
-		"$inc": bson.M{"distance": distance.Value},
-		"$set": bson.M{"obu_id": distance.ObuId},
+		"$inc": bson.M{"value": distance.Value},
+		"$set": bson.M{"obu_id": distance.ObuId, "timestamp": distance.Timestamp},
 	}, opts)
 
 	return err
-}
-
-type mongoDistance struct {
-	ObuID    string  `bson:"obu_id"`
-	Distance float64 `bson:"distance"`
 }
 
 func (m *MongoStorage) Get(obuID string) (float64, error) {
@@ -51,11 +46,11 @@ func (m *MongoStorage) Get(obuID string) (float64, error) {
 	if result.Err() != nil {
 		return -1, fmt.Errorf("obuID %s not found", obuID)
 	}
-	var distance mongoDistance
+	var distance types.Distance
 	err := result.Decode(&distance)
 	if err != nil {
 		return -1, err
 	}
 
-	return distance.Distance, nil
+	return distance.Value, nil
 }

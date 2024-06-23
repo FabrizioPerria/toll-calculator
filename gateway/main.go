@@ -2,25 +2,37 @@ package main
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"os"
 	"time"
 
 	"github.com/fabrizioperria/toll/aggregator/client"
+	"github.com/fabrizioperria/toll/shared/logger"
 	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
 	godotenv.Load()
-	listenAddr := os.Getenv("GATEWAY_ENDPOINT")
-	// httpClient := client.NewHTTPAggregatorClient(os.Getenv("AGGREGATOR_HTTP_ENDPOINT"))
-	grpcClient := client.NewGRPCAggregatorClient(os.Getenv("AGGREGATOR_GRPC_ENDPOINT"))
+
+	l := logger.LoggerFactory(os.Getenv("LOG_PATH"))
+
 	h := &invoiceHandler{
-		client: grpcClient,
+		client: aggregatorClientFactory(os.Getenv("AGGREGATOR_CLIENT")),
 	}
-	http.HandleFunc("/invoice", serveHTTP(h.handleGetInvoice))
-	http.ListenAndServe(listenAddr, nil)
+	http.HandleFunc("/invoice", serveHTTP(h.handleGetInvoice, l))
+	http.ListenAndServe(os.Getenv("GATEWAY_ENDPOINT"), nil)
+}
+
+func aggregatorClientFactory(aggClient string) client.AggregatorClient {
+	switch aggClient {
+	case "grpc":
+		return client.NewGRPCAggregatorClient(os.Getenv("AGGREGATOR_GRPC_ENDPOINT"))
+	case "http":
+		return client.NewHTTPAggregatorClient(os.Getenv("AGGREGATOR_HTTP_ENDPOINT"))
+	default:
+		panic("invalid aggregator client")
+	}
 }
 
 type invoiceHandler struct {
@@ -44,14 +56,23 @@ func writeJSON(w http.ResponseWriter, code int, data any) error {
 
 type apiFunc func(w http.ResponseWriter, r *http.Request) error
 
-func serveHTTP(fn apiFunc) http.HandlerFunc {
+func serveHTTP(fn apiFunc, logger *logrus.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		defer func(start time.Time) {
-			log.Printf("Request %s processed in %v", r.RequestURI, time.Since(start))
+			logger.WithFields(logrus.Fields{
+				"method":   r.Method,
+				"uri":      r.RequestURI,
+				"duration": float64(time.Since(start).Milliseconds()) / 1000,
+			}).Info("Request processed")
 		}(time.Now())
 
 		if err := fn(w, r); err != nil {
 			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			logger.WithFields(logrus.Fields{
+				"method": r.Method,
+				"uri":    r.RequestURI,
+				"error":  err.Error(),
+			}).Error("Request failed")
 		}
 	}
 }

@@ -2,7 +2,6 @@ package producers
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 
@@ -43,7 +42,6 @@ func (kp *KafkaProducer) Produce(obuData types.OBUData) error {
 		return err
 	}
 	topic := os.Getenv("KAFKA_TOPIC")
-	fmt.Println("Producing to topic: ", topic)
 	return kp.producer.Produce(&kafka.Message{
 		TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
 		Value:          marshalData,

@@ -1,11 +1,10 @@
 package consumers
 
 import (
-	"fmt"
-	"io"
 	"os"
 	"time"
 
+	"github.com/fabrizioperria/toll/shared/logger"
 	"github.com/fabrizioperria/toll/shared/types"
 	"github.com/sirupsen/logrus"
 )
@@ -16,24 +15,9 @@ type LogConsumerMiddleware struct {
 }
 
 func NewLogConsumerMiddleware(next DataConsumer) *LogConsumerMiddleware {
-	l := logrus.New()
-	l.SetFormatter(&logrus.JSONFormatter{})
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Println("Error getting home directory: ", err)
-		return nil
-	}
-	os.MkdirAll(homeDir+"/log/toll", 0o755)
-	f, err := os.OpenFile(homeDir+"/log/toll/distance-calc.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o755)
-	if err != nil {
-		fmt.Println("Error opening file: ", err)
-		return nil
-	}
-	l.SetOutput(io.MultiWriter(os.Stdout, f))
-
 	return &LogConsumerMiddleware{
 		next:   next,
-		logger: l,
+		logger: logger.LoggerFactory(os.Getenv("LOG_PATH")),
 	}
 }
 
@@ -43,7 +27,7 @@ func (lm *LogConsumerMiddleware) Consume() (data types.OBUData, err error) {
 			"obuId":     data.ObuId,
 			"latitude":  data.Latitude,
 			"longitude": data.Longitude,
-			"timestamp": data.Timestamp,
+			"duration":  float64(time.Since(t).Microseconds()) / 1000,
 		}).Info("Consumed")
 	}(time.Now())
 	data, err = lm.next.Consume()

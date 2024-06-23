@@ -1,6 +1,7 @@
 package aggregator
 
 import (
+	"os"
 	"time"
 
 	"github.com/fabrizioperria/toll/aggregator/storage"
@@ -12,8 +13,7 @@ type InvoiceAggregator struct {
 }
 
 func NewInvoiceAggregator() Aggregator {
-	// var agg Aggregator = &InvoiceAggregator{store: storage.NewMapStorage()}
-	var agg Aggregator = &InvoiceAggregator{store: storage.NewMongoStorage("mongodb://localhost:27017")}
+	var agg Aggregator = &InvoiceAggregator{store: storage.AggregatorStorageFactory(os.Getenv("STORAGE_TYPE"))}
 	agg = NewAggregatorMetricsMiddleware(agg)
 	agg = NewAggregatorLogMiddleware(agg)
 	return agg

@@ -1,10 +1,10 @@
 package aggregator
 
 import (
-	"fmt"
-	"io"
 	"os"
+	"time"
 
+	"github.com/fabrizioperria/toll/shared/logger"
 	"github.com/fabrizioperria/toll/shared/types"
 	"github.com/sirupsen/logrus"
 )
@@ -15,28 +15,19 @@ type AggregatorLogMiddleware struct {
 }
 
 func NewAggregatorLogMiddleware(next Aggregator) Aggregator {
-	l := logrus.New()
-	l.SetFormatter(&logrus.JSONFormatter{})
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Println("Error getting home directory: ", err)
-		return nil
-	}
-	os.MkdirAll(homeDir+"/log/toll", 0o755)
-	f, err := os.OpenFile(homeDir+"/log/toll/aggregator.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o755)
-	if err != nil {
-		fmt.Println("Error opening file: ", err)
-		return nil
-	}
-	l.SetOutput(io.MultiWriter(os.Stdout, f))
-
 	return &AggregatorLogMiddleware{
 		next:   next,
-		logger: l,
+		logger: logger.LoggerFactory(os.Getenv("LOG_PATH")),
 	}
 }
 
 func (l *AggregatorLogMiddleware) Aggregate(distance types.Distance) error {
+	defer func(t time.Time) {
+		l.logger.WithFields(logrus.Fields{
+			"latency": float64(time.Since(t).Microseconds()) / 1000,
+		}).Info("Latency Aggregating distance")
+	}(time.Now())
+
 	l.logger.WithFields(logrus.Fields{
 		"obu_id":    distance.ObuId,
 		"value":     distance.Value,
@@ -56,6 +47,12 @@ func (l *AggregatorLogMiddleware) Aggregate(distance types.Distance) error {
 }
 
 func (l *AggregatorLogMiddleware) GetInvoice(obuID string) (types.Invoice, error) {
+	defer func(t time.Time) {
+		l.logger.WithFields(logrus.Fields{
+			"latency": float64(time.Since(t).Microseconds()) / 1000,
+		}).Info("Latency Getting invoice")
+	}(time.Now())
+
 	l.logger.WithFields(logrus.Fields{
 		"obu_id": obuID,
 	}).Info("Getting invoice")

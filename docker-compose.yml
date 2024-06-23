@@ -44,7 +44,7 @@ services:
     image: grafana/promtail:2.9.2
     container_name: promtail
     volumes:
-      - ~/log/toll:/var/log
+      - /tmp/log/toll:/var/log
       - ./provision/promtail:/etc/promtail
     command: -config.file=/etc/promtail/config.yaml
     networks:

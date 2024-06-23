@@ -24,7 +24,6 @@ func generateOBU() types.OBUData {
 		Timestamp: time.Now().Unix(),
 	}
 
-	log.Printf("Generated OBU data: %+v\n", obuData)
 	return obuData
 }
 
@@ -48,14 +47,12 @@ func main() {
 	defer conn.Close()
 
 	for {
-		for i := 0; i < rand.Intn(100); i++ {
+		for i := 0; i < rand.Intn(1000); i++ {
 			if err := conn.WriteJSON(generateOBU()); err != nil {
 				log.Printf("Broken Pipe\n")
-				// reconnect
-				conn, _ = Connect(&url)
 			}
 		}
-		sleepTime := time.Duration(rand.Intn(1000))
+		sleepTime := time.Duration(rand.Intn(10))
 		time.Sleep(sleepTime * time.Millisecond)
 	}
 }
